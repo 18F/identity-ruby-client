@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+require 'login_dot_gov'
+require 'sinatra'
+
+# keep views outside of bin/
+set :views, settings.root + '/../views'
+
+get '/' do
+  erb :home
+end
+
+get '/version' do
+  LoginDotGov::VERSION
+end
