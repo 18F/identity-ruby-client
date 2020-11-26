@@ -27,12 +27,18 @@ get '/login/saml' do
 end
 
 post '/auth/saml/sso' do
-  param['SAMLResponse']
+  response = LoginDotGov::SAML::Response.parsed_response(params['SAMLResponse'])
+  <<~HEREDOC
+    <pre>
+      #{response.to_xml}
+    </pre>
+  HEREDOC
 end
 
 def configure_login_dot_gov
   LoginDotGov.configure do |config|
-    config.idp_host = 'http://idp.int.identitysandbox.gov'
+    # config.idp_host = 'https://idp.int.identitysandbox.gov'
+    config.idp_host = 'http://localhost:3000'
     config.issuer = 'urn:gov:gsa:SAML:2.0.profiles:sp:sso:gsa:oyk_saml'
     config.ial = 1
     config.attribute_bundle = %i[email]
@@ -72,5 +78,8 @@ def configure_login_dot_gov
 
   LoginDotGov::SAML.configure do |config|
     config.acs_url = "http://localhost:4567/auth/saml/sso"
+    # config.auth_endpoint = 'auth2020'
+    config.auth_endpoint = 'auth'
+    config.assertion_encryption = true
   end
 end

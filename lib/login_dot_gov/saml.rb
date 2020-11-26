@@ -1,5 +1,6 @@
 require 'login_dot_gov/saml/authn_request'
 require 'login_dot_gov/saml/configuration'
+require 'login_dot_gov/saml/response'
 
 require 'cgi'
 
@@ -10,7 +11,7 @@ module LoginDotGov
     end
 
     def self.auth_destination
-      LoginDotGov.configuration.idp_host + '/api/saml/auth2020'
+      LoginDotGov.configuration.idp_host + '/api/saml/' + LoginDotGov::SAML.configuration.auth_endpoint
     end
   end
 end

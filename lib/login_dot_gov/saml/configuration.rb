@@ -13,6 +13,8 @@ module LoginDotGov
 
     class Configuration < SimpleDelegator
       attr_accessor :acs_url
+      attr_accessor :auth_endpoint
+      attr_accessor :assertion_encryption
     end
   end
 end
