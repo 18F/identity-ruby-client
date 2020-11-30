@@ -1,0 +1,85 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+require 'login_dot_gov'
+require 'sinatra'
+
+# keep views outside of bin/
+set :views, settings.root + '/../views'
+
+get '/' do
+  erb :home
+end
+
+post '/' do
+  'You made it!'
+end
+
+get '/version' do
+  LoginDotGov::VERSION
+end
+
+get '/login/saml' do
+  configure_login_dot_gov
+  authn_request = LoginDotGov::SAML.encoded_authn_request
+  puts "Redirecting: #{authn_request}"
+  redirect authn_request, 303
+end
+
+post '/auth/saml/sso' do
+  response = LoginDotGov::SAML::Response.parsed_response(params['SAMLResponse'])
+  <<~HEREDOC
+    <pre>
+      #{response.to_xml}
+    </pre>
+  HEREDOC
+end
+
+def configure_login_dot_gov
+  LoginDotGov.configure do |config|
+    # config.idp_host = 'https://idp.int.identitysandbox.gov'
+    config.idp_host = 'http://localhost:3000'
+    config.issuer = 'urn:gov:gsa:SAML:2.0.profiles:sp:sso:gsa:oyk_saml'
+    config.ial = 1
+    config.attribute_bundle = %i[email]
+    config.private_key = <<~HEREDOC
+      -----BEGIN ENCRYPTED PRIVATE KEY-----
+      MIIFDzBJBgkqhkiG9w0BBQ0wPDAbBgkqhkiG9w0BBQwwDgQIyh4iwh07tF4CAggA
+      MB0GCWCGSAFlAwQBKgQQwguF5OFfUV4x9SAM/z51xwSCBMDwGW2GkhIUAbS+dAsD
+      N24JLYR7Mw4R6CbHi/ZiD6FXOQINnGxqwrlDHb0r5wYCROwL7gkFSXI5lkRB1wZw
+      pmJmXfT+gSIpwPLT4NvTx/lvxHsyUMgApu6gC3lQgrxZ1DfKutiZ+w43FURE2E/X
+      YmDTW83TxalGffy3UaEfY5glmF7amiLRGE8pzeXrO87w7yHq8/q2WHz8IFhobXac
+      Z7jJGoszU4hliFYX1V6tv4dfP4aqZCFLmf48/Xl/IOzvJi20HS1XKayEzxg7mz1R
+      9GYKt93IFJJbuf0IjM08a2+1mgS31436TBiLCDOvrgixRSfD+bQFtZ2diLug75V9
+      Lv+Bvnn4t9eyQcwOQCOsA1qKs5daYoe0FjpAC8zeDiCUuNxmra4ikU9q2Pt5pkxG
+      7PderaU1IRnUBOQS8cCv670kqFgtLtp+HcPKJe8cvjiYA71VRtsfTalGhzJ/GOzQ
+      fy97Z/uOmnuUIqN9S1N56ePRKhBzuEjPWwyprBww0CATlThSwFKVTuVdGFDgxeaU
+      2zVlV2fR9u1Rg34kNa49dNCu0rOxsXiZuyV+EvOf/aZ5OxW/wkGfBVdIEO3bH7Iw
+      EFDtuG1H5pZ9GHf83zOBP11acuk6PBRgdKMCY3VebzQEZFQkNmIO9mLORy4WKQl3
+      WLjqJ0P+KY7bwar4AAk3e9TY2EnKYyoTVVg55GTIpEQnULr0rzaQhrFtszFsbCmx
+      9nEZPZeqYQtx3cdCYnixUzc9Bd65tRETdi5MmoJIKJVRCfAy/TfkHFZ36dMUe1B3
+      4T6ZsaCp0wguMsWDCcd9NnJ5/jsTK8WG3AzkvBdoL24M7D1Q3a9i3APaQV41I3B4
+      +Uw0TTN0og0M5gopftcc533Y4IZlqgaDxDHltBkfPdn3Ehj/F/4I/VtzJmEn/KFk
+      rUQ0TuRFlzlNO9LYUpP4xrNccij1pIqg6orgheJ6Mmg9aFKXm7q4896XEQa8C6x7
+      jXaInkXTkavhuMhskNaWCzt4sDkMTru75aXZimRQH5b9zimjmdd51ZsqtSDvzFC8
+      20QIFnnd02kymTKOQjb4UGvBa+PITGGFkt/0bZx1ICh3cie7NOg0biNgVXZ2v4qj
+      kmDkbBC1DbF51JF9mF/Qsow5v/HOYRDd+G8Tq4Le4nEbKaZ6bs1icEkP1NZY5nR4
+      Fwjl5dlhSrDh2zUYonc2kjHGXE7bviyutB+R08mmkGWMR7TuYw8DNuJiXRIrf/Nk
+      JSN1VBoZzvYxbgqx/TrYJ0tkHpFESbc6N2pmMhLiLXibf/ArchSiorz/1tA+gTQQ
+      kocMs4zm0XHbjPhgI28tkGHjDXYY2BDOO4gN/zotZMNUa3EKd5PHAZ8EQd1iktAT
+      0N+9+3UOEL/mvTTY+Z65b39h0DVP4fj2Oo8YWs3mDUiRtlAn1F0LYHgDloIwpWZV
+      U1Ztzn+4OlFShPDjfbChX5cKC396j8RCQssAEwFiu2bYQi5YygxZOM/yQ3XbO2rO
+      Y6QVLXt72FJJ68eTHwJ1DC1vI42whzCAAOKBsRsH8PkC55wPMeMq3J3iHfYJa7Db
+      /f8SDg01ybRj5XRIdhJdkWZiQCDAlsN4qRLgSgXFjum+gpxYEXaLQjZhEBwpt8Vq
+      mxX/
+      -----END ENCRYPTED PRIVATE KEY-----
+    HEREDOC
+  end
+
+  LoginDotGov::SAML.configure do |config|
+    config.acs_url = "http://localhost:4567/auth/saml/sso"
+    # config.auth_endpoint = 'auth2020'
+    config.auth_endpoint = 'auth'
+    config.assertion_encryption = true
+  end
+end
